@@ -1,19 +1,4 @@
 # from : https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/instance
-data "aws_ami" "ubuntu" {
-  most_recent = true
-
-  filter {
-    name   = "name"
-    values = ["ubuntu/images/hvm-ssd/ubuntu-focal-20.04-amd64-server-*"]
-  }
-
-  filter {
-    name   = "virtualization-type"
-    values = ["hvm"]
-  }
-
-  owners = ["099720109477"] # Canonical
-}
 
 resource "aws_security_group" "streamlit-sg" {
   name        = "streamlit-sg"
@@ -28,7 +13,8 @@ resource "aws_security_group" "streamlit-sg" {
   to_port           = 8501
 
   }
- ingress {
+
+  ingress {
   
   protocol          = "tcp"
   ipv6_cidr_blocks = ["::/0"]
@@ -36,12 +22,30 @@ resource "aws_security_group" "streamlit-sg" {
   to_port           = 8501
 
   }
- ingress {
+
+  ingress {
   
   protocol          = "tcp"
   cidr_blocks       = ["0.0.0.0/0"]
   from_port         = 22
   to_port           = 22
+
+  }
+
+    ingress {
+  
+  protocol          = "tcp"
+  cidr_blocks       = ["0.0.0.0/0"]
+  from_port         = 80
+  to_port           = 80
+
+  }
+    ingress {
+  
+  protocol          = "tcp"
+  ipv6_cidr_blocks = ["::/0"]
+  from_port         = 80
+  to_port           = 80
 
   }
 
@@ -59,12 +63,13 @@ resource "aws_security_group" "streamlit-sg" {
   }
 }
 
-resource "aws_instance" "ec2-streamlit" {
-  ami           = data.aws_ami.ubuntu.id
+resource "aws_instance" "ec2-streamlit_tf" {
+  ami           =  "ami-0c2b8ca1dad447f8a"//data.aws_ami.ubuntu.id
   instance_type = "t2.micro"
   vpc_security_group_ids = [aws_security_group.streamlit-sg.id]
+  user_data = file("init-script.sh")
   tags = {
-    Name = "ec2-streamlit"
+    Name = "ec2-streamlit_tf"
   }
 }
 
